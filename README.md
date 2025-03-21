@@ -83,4 +83,4 @@ To prevent resource accumulation, the script automatically deletes the RAG corpu
 
 ## Documentation
 
-For more information on Vertex AI RAG, see the official [Google Cloud documentation](https://cloud.google.com/vertex-ai/docs/generative-ai/rag/rag-overview). 
+For more information on Vertex AI RAG, see the official [Google Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-quickstart). 
