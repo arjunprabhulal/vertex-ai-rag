@@ -30,10 +30,9 @@ def format_timestamp(timestamp):
 # Create a RAG Corpus, Import Files, and Generate a response
 
 # Replace these values with your own
-PROJECT_ID = "PROJECT_ID" # Your Google Cloud Project ID, e.g., "vertex-ai-experminent"
-display_name = "PROJECT_ID_rag_corpus" # A name for your RAG corpus
-paths = [] # List of file paths, e.g., ["gs://your-bucket-name/your-document.pdf"]
-
+PROJECT_ID = "YOUR_PROJECT_ID" # Your Google Cloud Project ID
+display_name = f"{PROJECT_ID}_rag_corpus" # A name for your RAG corpus
+paths = ["gs://YOUR_BUCKET_NAME/YOUR_DOCUMENT.pdf"] # List of file paths in GCS
 
 # LEVEL 1: Main steps with clear logging
 logger.info("===== VERTEX AI RAG PROCESS STARTED =====")
@@ -56,12 +55,15 @@ logger.info("STEP 2: Creating RAG Corpus")
 # LEVEL 2: Details of the step
 logger.info(f"Embedding model: text-embedding-005, Corpus name: {display_name}")
 try:
+    # Configure embedding model for RAG
     embedding_model_config = rag.RagEmbeddingModelConfig(
           vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
               publisher_model="publishers/google/models/text-embedding-005"
           )
     )
+    # Create vector database configuration
     backend_config = rag.RagVectorDbConfig(rag_embedding_model_config=embedding_model_config)
+    # Create the RAG corpus
     rag_corpus = rag.create_corpus(
         display_name=display_name,
         backend_config=backend_config,
@@ -92,12 +94,14 @@ logger.info(f"Target corpus: {corpus_name}")
 logger.info(f"Files to import: {paths}")
 logger.info("Chunk size: 512, Overlap: 100")
 try:
+    # Define chunking configuration
     transformation_config = rag.TransformationConfig(
           chunking_config=rag.ChunkingConfig(
               chunk_size=512,
               chunk_overlap=100,
           ),
       )
+    # Import files with specified configuration
     rag.import_files(
         corpus_name,
         paths,
@@ -134,10 +138,12 @@ query = "What is RAG and why it is helpful?"
 logger.info(f"Query: '{query}'")
 logger.info("Retrieval config: top_k=3, distance_threshold=0.5")
 try:
+    # Configure retrieval parameters
     rag_retrieval_config=rag.RagRetrievalConfig(
         top_k=3,
         filter=rag.Filter(vector_distance_threshold=0.5)
     )
+    # Perform direct retrieval query
     response = rag.retrieval_query(
         rag_resources=[rag.RagResource(rag_corpus=corpus_name)],
         text=query,
@@ -156,6 +162,8 @@ try:
             logger.info(f"  Chunk {i+1}: From '{file_name}' (Relevance: {score})")
             logger.info(f"    Preview: {text_preview}")
     
+    # Print retrieval response for inspection
+    print("\n=== RETRIEVAL RESPONSE ===")
     print(response)
 except Exception as e:
     logger.error(f"✗ Context retrieval failed: {str(e)}")
@@ -163,22 +171,26 @@ except Exception as e:
 logger.info("---------")
 
 # LEVEL 1: Step 7 - Generate Content with RAG
-logger.info("STEP 7: Generating Content with RAG")
+logger.info("STEP 7: Generating Content with RAG using Gemini 2.0 Flash")
 # LEVEL 2: Details of the step
 logger.info(f"Query: '{query}'")
 logger.info("Model: gemini-2.0-flash-001")
 try:
+    # Create a RAG retrieval tool for the generative model
     rag_retrieval_tool = Tool.from_retrieval(
         retrieval=rag.Retrieval(
             source=rag.VertexRagStore(
                 rag_resources=[rag.RagResource(rag_corpus=corpus_name)],
-                rag_retrieval_config=rag_retrieval_config,
+                rag_retrieval_config=rag.RagRetrievalConfig(top_k=3)
             ),
         )
     )
+    # Initialize Gemini 2.0 Flash model with the RAG tool
     rag_model = GenerativeModel(
-        model_name="gemini-2.0-flash-001", tools=[rag_retrieval_tool]
+        model_name="gemini-2.0-flash-001", 
+        tools=[rag_retrieval_tool]
     )
+    # Generate content with the model
     response = rag_model.generate_content(query)
     
     # LEVEL 2: Generation results
@@ -202,6 +214,8 @@ try:
         if token_info:
             logger.info(f"Token usage: {', '.join(token_info)}")
     
+    # Print generated response
+    print("\n=== GEMINI RESPONSE ===")
     print(response.text)
 except Exception as e:
     logger.error(f"✗ Content generation failed: {str(e)}")
@@ -209,11 +223,6 @@ except Exception as e:
 logger.info("---------")
 
 logger.info("===== VERTEX AI RAG PROCESS COMPLETED =====")
-
-# Example response:
-#   RAG stands for Retrieval-Augmented Generation.
-#   It's a technique used in AI to enhance the quality of responses
-# ...
 
 # Function to delete a RAG corpus
 def delete_rag_corpus(corpus_name):
@@ -248,6 +257,5 @@ if __name__ == "__main__":
         else:
             logger.error("✗ Failed to delete corpus")
     except Exception as e:
-        logger.error(f"✗ Failed to delete created corpus: {str(e)}")
-    
-    logger.info("===== CLEANUP COMPLETED =====")
+        logger.error(f"✗ Cleanup error: {str(e)}")
+        logger.info("Note: To manually delete corpora, you can use the delete_rag_corpus() function.")

@@ -1,17 +1,17 @@
-# Vertex AI RAG 
+# Vertex AI RAG with Gemini 2 Flash
 
-This project demonstrates how to implement Retrieval-Augmented Generation (RAG) using Google Cloud's Vertex AI. The implementation allows you to create a RAG corpus, import files, and generate AI responses enhanced with context from your documents.
+![Vertex AI RAG with Gemini 2 Flash](images/vertex-ai-rag.gif)
 
-This project was created by following the step-by-step guide from the [Vertex AI RAG quickstart for Python](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-quickstart).
+A complete implementation of Retrieval-Augmented Generation (RAG) workflow using Google Cloud's Vertex AI and Gemini 2.0 Flash.
 
-## Features
+## Step-by-Step RAG Workflow
 
-- Create and manage RAG corpus in Vertex AI
-- Import documents from Google Cloud Storage
-- Configure chunking and embedding models
-- Perform direct context retrieval
-- Generate AI responses enhanced with document context using Gemini models
-- Automatically clean up RAG corpora after use
+1. Create and manage RAG corpus in Vertex AI
+2. Import documents from Google Cloud Storage
+3. Configure chunking and embedding models
+4. Perform direct context retrieval
+5. Generate AI responses enhanced with document context using Gemini models
+6. Clean up RAG corpora after demo
 
 ## Requirements
 
@@ -29,8 +29,8 @@ This project was created by following the step-by-step guide from the [Vertex AI
 
 2. Set up IAM permissions:
    ```bash
-   gcloud projects add-iam-policy-binding vertex-ai-experminent --member="user:YOUR_EMAIL@domain.com" --role="roles/aiplatform.user" 
-   gcloud projects add-iam-policy-binding vertex-ai-experminent --member="user:YOUR_EMAIL@domain.com" --role="roles/storage.objectAdmin"
+   gcloud projects add-iam-policy-binding PROJECT_ID --member="user:YOUR_EMAIL@domain.com" --role="roles/aiplatform.user" 
+   gcloud projects add-iam-policy-binding PROJECT_ID --member="user:YOUR_EMAIL@domain.com" --role="roles/storage.objectAdmin"
    ```
 
 3. Create a Google Cloud Storage bucket and upload your PDF files:
@@ -45,17 +45,33 @@ This project was created by following the step-by-step guide from the [Vertex AI
    gsutil ls gs://your-bucket-name/
    ```
    
-   Note: Remember the path to your files (e.g., `gs://your-bucket-name/your-document.pdf`) as you'll need it in step 6.
+   Note: Remember the path to your files (e.g., `gs://your-bucket-name/your-document.pdf`) as you'll need it for the corpus creation.
 
-4. Clone this repository
+4. Set up authentication credentials:
+   ```bash
+   # Download your service account key from GCP Console and set the environment variable
+   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key
+   
+   # On Windows, use:
+   # set GOOGLE_APPLICATION_CREDENTIALS=C:\path\to\your\service-account-key
+   ```
+   
+   Note: This step is critical for authenticating with Google Cloud services. You need a service account with the appropriate permissions.
 
-5. Install dependencies:
+5. Clone this repository:
+   ```bash
+   git clone https://github.com/arjunprabhulal/vertex-ai-rag.git
+   cd vertex-ai-rag
+   ```
+
+6. Install dependencies:
    ```
    pip install -r requirements.txt
+   pip install --upgrade google-cloud-aiplatform
    ```
 
-6. Update the configuration in `vertex_ai_rag.py`:
-   - Set your PROJECT_ID (e.g., "vertex-ai-experminent")
+7. Update the configuration in `vertex_ai_rag.py`:
+   - Set your PROJECT_ID
    - Configure your corpus display name
    - Add paths to your documents in Google Cloud Storage:
      ```python
@@ -70,17 +86,10 @@ Run the main script:
 python vertex_ai_rag.py
 ```
 
-The script demonstrates:
-- Creating a RAG corpus
-- Importing documents
-- Direct context retrieval
-- Enhanced generation with RAG
-- Automatic cleanup of the created corpus when finished
-
-### Resource Management
-
-To prevent resource accumulation, the script automatically deletes the RAG corpus it creates after completing the process. This ensures you don't accumulate unused resources in your Google Cloud project.
-
 ## Documentation
 
-For more information on Vertex AI RAG, see the official [Google Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-quickstart). 
+For more information on Vertex AI RAG, see the official [Google Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-overview).
+
+## Author
+
+For more articles on AI/ML and Generative AI, follow me on Medium: https://medium.com/@arjun-prabhulal
